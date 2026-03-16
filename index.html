@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>스마트 2학년 5반 관리 시스템</title>
-    <!-- Firebase SDK -->
+    <!-- Firebase App (Compat) 및 Realtime Database (Compat) 추가 -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         :root {
             --bg-color: #f4f7fa;
@@ -18,312 +17,165 @@
             --text-gray: #5f6368;
             --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
-        }
-
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .header { width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
-        .header h1 { font-size: 24px; margin: 0; color: var(--text-dark); }
-        
-        .admin-bar {
-            width: 100%; max-width: 500px;
-            display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px;
-        }
-        .admin-btn {
-            background: none; border: 1px solid #ccc; border-radius: 8px;
-            padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--text-gray);
-        }
-
-        .section-title {
-            width: 100%; max-width: 500px; font-size: 18px; font-weight: 700;
-            margin: 20px 0 15px; display: flex; align-items: center;
-        }
-        .section-title::before {
-            content: ""; width: 4px; height: 18px; background: var(--accent-blue);
-            margin-right: 10px; border-radius: 2px;
-        }
-
-        .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 100px; }
-
-        .card {
-            background: var(--card-color); border-radius: 20px; padding: 22px;
-            box-shadow: var(--shadow); position: relative; cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .card:active { transform: scale(0.98); }
-
-        .d-day {
-            position: absolute; top: 22px; right: 22px;
-            padding: 5px 12px; border-radius: 10px; font-size: 13px; font-weight: 800;
-        }
-        .urgent { background-color: #fee; color: #d93025; }
-        .upcoming { background-color: #e8f0fe; color: #1a73e8; }
-
-        .subject-text { font-size: 19px; font-weight: 700; margin-top: 5px; }
-        
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content {
-            background: #fff; width: 90%; max-width: 450px; border-radius: 25px;
-            padding: 25px; box-sizing: border-box; position: relative;
-            max-height: 90vh; overflow-y: auto;
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .close-x { font-size: 24px; cursor: pointer; color: #888; border: none; background: none; }
-
-        .modal-input {
-            width: 100%; padding: 12px; margin: 8px 0 15px; border: 1px solid #ddd;
-            border-radius: 10px; box-sizing: border-box; font-size: 15px;
-        }
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        .btn {
-            flex: 1; padding: 15px; border-radius: 12px; border: none;
-            font-weight: 700; cursor: pointer;
-        }
-        .btn-save { background: var(--accent-blue); color: #fff; }
-        .btn-cancel { background: #f1f3f4; color: #333; }
-        .btn-delete { background: #fee; color: #d93025; }
-
+        .header h1 { font-size: 24px; color: var(--text-dark); margin: 10px 0; }
+        .admin-bar { width: 100%; max-width: 500px; display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
+        .admin-btn { background: none; border: 1px solid #ccc; border-radius: 8px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--text-gray); }
         .suggestion-area { width: 100%; max-width: 500px; margin-bottom: 20px; }
         .suggestion-btn {
             display: block; background: var(--accent-green); color: #fff;
             text-align: center; padding: 18px; border-radius: 16px;
-            text-decoration: none; font-weight: 700;
+            text-decoration: none; font-weight: 700; box-shadow: 0 4px 10px rgba(52, 168, 83, 0.2);
         }
-
-        #loading { padding: 40px; text-align: center; color: #888; }
-        .fixed-bottom-btn {
-            position: fixed; bottom: 30px; width: 90%; max-width: 460px;
-            z-index: 99;
-        }
-        .status-badge { font-size: 10px; color: #9aa0a6; text-align: center; margin: 15px 0; }
+        .section-title { width: 100%; max-width: 500px; font-size: 18px; font-weight: 700; margin: 20px 0 15px; display: flex; align-items: center; }
+        .section-title::before { content: ""; width: 4px; height: 18px; background: var(--accent-blue); margin-right: 10px; border-radius: 2px; }
+        .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 100px; }
+        .card { background: var(--card-color); border-radius: 20px; padding: 22px; box-shadow: var(--shadow); position: relative; cursor: pointer; }
+        .d-day { position: absolute; top: 22px; right: 22px; padding: 5px 12px; border-radius: 10px; font-size: 13px; font-weight: 800; }
+        .urgent { background-color: #fee; color: #d93025; }
+        .upcoming { background-color: #e8f0fe; color: #1a73e8; }
+        .subject-text { font-size: 19px; font-weight: 700; margin-top: 5px; }
+        .date-text { font-size: 13px; color: var(--text-gray); margin-top: 4px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #fff; width: 90%; max-width: 450px; border-radius: 25px; padding: 25px; box-sizing: border-box; }
+        .modal-input { width: 100%; padding: 12px; margin: 8px 0 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
+        .btn-save { background: var(--accent-blue); color: #fff; }
+        .status-badge { font-size: 10px; color: #9aa0a6; margin-top: 20px; }
+        .online { color: var(--accent-green); font-weight: bold; }
+        #admin-controls { position: fixed; bottom: 30px; width: 90%; max-width: 460px; z-index: 99; }
     </style>
 </head>
 <body>
-
     <div class="header">
         <h1>2학년 5반 스마트 시스템</h1>
-        <p>기술로 챙겨주는 우리 반 반장 후보</p>
+        <p style="color: var(--text-gray); margin: 0;">실시간 학급 대시보드</p>
     </div>
 
     <div class="admin-bar">
         <button class="admin-btn" onclick="location.reload()">새로고침 🔄</button>
-        <button class="admin-btn" id="adminToggleBtn" onclick="toggleAdminMode()">관리자 로그인</button>
+        <button class="admin-btn" id="adminBtn" onclick="toggleAdminMode()">관리자 로그인</button>
     </div>
 
     <div class="suggestion-area">
         <a href="https://forms.google.com" target="_blank" class="suggestion-btn">🗳️ 익명 학급 건의함 / 자리 바꾸기</a>
     </div>
 
-    <div class="section-title">실시간 수행평가 일정</div>
-    <div id="loading">데이터 로드 중...</div>
-    <div class="container" id="schedule-list"></div>
-    
-    <div id="status-display" class="status-badge">네트워크 확인 중...</div>
+    <div class="section-title">수행평가 일정</div>
+    <div class="container" id="schedule-list">
+        <div style="text-align:center; color:#888; padding:40px;">데이터를 불러오는 중...</div>
+    </div>
 
-    <div id="admin-controls" class="fixed-bottom-btn" style="display:none;">
-        <button class="btn btn-save" style="box-shadow: 0 4px 12px rgba(26,115,232,0.4);" onclick="openEditModal(null)">+ 새 일정 등록</button>
+    <div id="status-display" class="status-badge">서버 연결 중...</div>
+
+    <div id="admin-controls" style="display:none;">
+        <button class="btn btn-save" onclick="openEditModal(null)">+ 새 일정 등록</button>
     </div>
 
     <div class="modal-overlay" id="editModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle" style="margin:0; font-size: 20px;">정보 입력</h2>
-                <button class="close-x" onclick="closeModal()">&times;</button>
-            </div>
-            
-            <input type="text" id="inputSubject" class="modal-input" placeholder="과목명 (예: 국어 수행평가)">
+            <h2>일정 관리</h2>
+            <input type="text" id="inputSubject" class="modal-input" placeholder="과목명">
             <input type="date" id="inputDate" class="modal-input">
-            <textarea id="inputDetail" class="modal-input" style="height:120px" placeholder="반영 비율, 준비물 등 상세 내용"></textarea>
-            
+            <textarea id="inputDetail" class="modal-input" style="height:100px" placeholder="상세 내용"></textarea>
             <div class="btn-group">
-                <button id="deleteBtn" class="btn btn-delete" style="display:none" onclick="deleteItem()">삭제</button>
-                <button class="btn btn-cancel" onclick="closeModal()">취소</button>
-                <button id="saveMainBtn" class="btn btn-save" onclick="saveItem()">데이터 저장</button>
+                <button class="btn" onclick="closeModal()">취소</button>
+                <button class="btn btn-save" onclick="saveItem()">저장</button>
             </div>
         </div>
     </div>
 
     <script>
-        let db;
-        let isAdmin = false;
-        let currentEditingId = null;
-        let schedules = [];
-
         const firebaseConfig = {
             apiKey: "AIzaSyBnDwYvG-03LNl3NZ3LkOJZnmFGQ8Zcv-k",
-            authDomain: "manager-47dc3.firebaseapp.com",
+            // ★ 부반장님의 실제 싱가포르 서버 주소로 수정 완료 ★
+            databaseURL: "https://manager-47dc3-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "manager-47dc3",
             appId: "1:1035340296214:web:cf1910943c2e04d25bc537"
         };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const scheduleRef = database.ref('schedules');
+
+        let isAdmin = false;
+        let schedules = [];
 
         function init() {
-            // 1. 로컬 저장소 우선 로드
-            const savedData = localStorage.getItem('class5_schedules');
-            if (savedData) {
-                schedules = JSON.parse(savedData);
+            // 연결 상태 모니터링 추가
+            database.ref(".info/connected").on("value", (snap) => {
+                if (snap.val() === true) {
+                    document.getElementById('status-display').innerHTML = "<span class='online'>● 서버 실시간 동기화 중 (연결됨)</span>";
+                } else {
+                    document.getElementById('status-display').innerHTML = "<span style='color:red'>● 서버 연결 시도 중...</span>";
+                }
+            });
+
+            // 데이터 리스너
+            scheduleRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                schedules = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        schedules.push({ id: key, ...data[key] });
+                    });
+                }
                 renderList();
-                document.getElementById('status-display').innerText = "로컬 모드 활성화 (네트워크 독립)";
-            }
-
-            try {
-                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                
-                // 방화벽 우회용 설정
-                db.settings({ 
-                    experimentalForceLongPolling: true,
-                    useFetchStreams: false 
-                });
-
-                // 3초 후에도 서버 응답 없으면 로딩창 닫고 오프라인 모드 전환
-                setTimeout(() => {
-                    const loader = document.getElementById('loading');
-                    if (loader && loader.style.display !== 'none') {
-                        loader.style.display = 'none';
-                        document.getElementById('status-display').innerText = "오프라인 모드 (저장 시 네트워크가 필요할 수 있음)";
-                    }
-                }, 3000);
-
-                loadFromServer();
-
-            } catch(e) { 
-                console.log("Firebase Init Fail");
-            }
+            });
         }
 
         function renderList() {
-            document.getElementById('loading').style.display = 'none';
-            const listContainer = document.getElementById('schedule-list');
-            listContainer.innerHTML = '';
-            
+            const list = document.getElementById('schedule-list');
+            list.innerHTML = '';
             if (schedules.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; color:#888; padding:30px;">등록된 일정이 없습니다.</div>';
+                list.innerHTML = '<div style="text-align:center; color:#888; padding:30px;">등록된 일정이 없습니다.</div>';
                 return;
             }
-
             schedules.sort((a, b) => new Date(a.date) - new Date(b.date));
-
             schedules.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.onclick = () => isAdmin ? openEditModal(item) : alert(`[${item.subject}]\n날짜: ${item.date}\n내용: ${item.detail}`);
-                
                 const d = new Date(item.date);
                 const now = new Date(); now.setHours(0,0,0,0);
                 const diff = Math.ceil((d - now) / (1000*60*60*24));
                 const ddayText = diff === 0 ? "D-Day" : (diff < 0 ? "종료" : "D-"+diff);
                 const ddayClass = diff <= 3 ? "urgent" : "upcoming";
-
-                card.innerHTML = `
-                    <span class="d-day ${ddayClass}">${ddayText}</span>
-                    <div style="font-size:12px; color:#888">${item.date}</div>
-                    <div class="subject-text">${item.subject}</div>
-                `;
-                listContainer.appendChild(card);
+                card.innerHTML = `<span class="d-day ${ddayClass}">${ddayText}</span><div class="date-text">${item.date}</div><div class="subject-text">${item.subject}</div>`;
+                card.onclick = () => alert(`[${item.subject}]\n상세: ${item.detail || '내용 없음'}`);
+                list.appendChild(card);
             });
-        }
-
-        function loadFromServer() {
-            if(!db) return;
-            db.collection('schedules').onSnapshot((snapshot) => {
-                const serverData = [];
-                snapshot.forEach(doc => serverData.push({id: doc.id, ...doc.data()}));
-                
-                if (serverData.length > 0) {
-                    schedules = serverData;
-                    localStorage.setItem('class5_schedules', JSON.stringify(schedules));
-                    renderList();
-                    document.getElementById('status-display').innerText = "서버와 실시간 동기화 중 ✅";
-                }
-            }, (err) => {
-                console.log("Sync Blocked");
-            });
-        }
-
-        async function saveItem() {
-            const subject = document.getElementById('inputSubject').value;
-            const date = document.getElementById('inputDate').value;
-            const detail = document.getElementById('inputDetail').value;
-            const btn = document.getElementById('saveMainBtn');
-
-            if(!subject || !date) return alert("내용을 입력해주세요.");
-
-            btn.disabled = true;
-            btn.innerText = "연결 시도 중...";
-
-            const itemData = { subject, date, detail };
-            
-            // 로컬에 먼저 강제 저장 (네트워크 안되어도 UI는 바뀜)
-            if (currentEditingId && currentEditingId.startsWith('local_')) {
-                const idx = schedules.findIndex(s => s.id === currentEditingId);
-                schedules[idx] = { ...schedules[idx], ...itemData };
-            } else if (currentEditingId) {
-                const idx = schedules.findIndex(s => s.id === currentEditingId);
-                if (idx > -1) schedules[idx] = { ...schedules[idx], ...itemData };
-            } else {
-                schedules.push({ ...itemData, id: 'local_' + Date.now() });
-            }
-
-            localStorage.setItem('class5_schedules', JSON.stringify(schedules));
-            renderList();
-            closeModal();
-
-            // 서버 전송 시도
-            try {
-                if (currentEditingId && !currentEditingId.startsWith('local_')) {
-                    await db.collection('schedules').doc(currentEditingId).update(itemData);
-                } else {
-                    await db.collection('schedules').add({ ...itemData, createdAt: new Date() });
-                }
-                alert("✅ 서버 저장 성공!");
-            } catch (e) {
-                alert("⚠️ 서버 연결이 차단되었습니다.\n입력한 내용은 현재 기기에만 임시 저장됩니다.\n(시연용 VPN/핫스팟 권장)");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "데이터 저장";
-            }
-        }
-
-        async function deleteItem() {
-            if(!confirm("정말 삭제할까요?")) return;
-            const id = currentEditingId;
-            schedules = schedules.filter(s => s.id !== id);
-            localStorage.setItem('class5_schedules', JSON.stringify(schedules));
-            renderList();
-            closeModal();
-            try {
-                if (!id.startsWith('local_')) await db.collection('schedules').doc(id).delete();
-            } catch(e) { }
         }
 
         function toggleAdminMode() {
-            if(prompt("관리자 비밀번호를 입력하세요.") === "2026205suheang") {
+            if(prompt("관리자 비밀번호?") === "2026205suheang") {
                 isAdmin = true;
                 document.getElementById('admin-controls').style.display = 'block';
-                document.getElementById('adminToggleBtn').innerText = "관리자 모드 (ON)";
-                renderList();
-                alert("관리자 권한으로 접속했습니다.");
+                alert("관리자 모드 활성화!");
             }
         }
 
-        function openEditModal(item) {
-            currentEditingId = item ? item.id : null;
-            document.getElementById('modalTitle').innerText = item ? "내용 수정" : "새 일정 등록";
-            document.getElementById('inputSubject').value = item ? item.subject : '';
-            document.getElementById('inputDate').value = item ? item.date : '';
-            document.getElementById('inputDetail').value = item ? item.detail : '';
-            document.getElementById('deleteBtn').style.display = item ? 'block' : 'none';
-            document.getElementById('editModal').style.display = 'flex';
-        }
-
+        function openEditModal() { document.getElementById('editModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        function saveItem() {
+            const subject = document.getElementById('inputSubject').value;
+            const date = document.getElementById('inputDate').value;
+            const detail = document.getElementById('inputDetail').value;
+            if(!subject || !date) return alert("입력 확인!");
+            
+            scheduleRef.push({ subject, date, detail }).then(() => {
+                closeModal();
+                alert("서버 저장 완료!");
+                // 입력 필드 초기화
+                document.getElementById('inputSubject').value = '';
+                document.getElementById('inputDate').value = '';
+                document.getElementById('inputDetail').value = '';
+            }).catch(err => {
+                alert("저장 실패: " + err.message);
+            });
+        }
 
         init();
     </script>
