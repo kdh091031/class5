@@ -3,55 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트 2학년 5반 관리 시스템</title>
-    <!-- Firebase App (Compat) 및 Realtime Database (Compat) 추가 -->
+    <title>경일고 2학년 5반 스마트 시스템</title>
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         :root {
-            --bg-color: #f4f7fa;
-            --card-color: #ffffff;
-            --accent-blue: #1a73e8;
-            --accent-green: #34a853;
-            --text-dark: #202124;
-            --text-gray: #5f6368;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --kyungil-blue: #1a237e; /* 경일고 남색 포인트 */
+            --kyungil-green: #2e7d32; /* 경일고 녹색 포인트 */
+            --bg-color: #f8f9fc;
+            --card-color: rgba(255, 255, 255, 0.9);
+            --text-dark: #1c1c1c;
+            --text-gray: #666;
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
         }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .header { width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
-        .header h1 { font-size: 24px; color: var(--text-dark); margin: 10px 0; }
-        .admin-bar { width: 100%; max-width: 500px; display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
-        .admin-btn { background: none; border: 1px solid #ccc; border-radius: 8px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--text-gray); }
-        .suggestion-area { width: 100%; max-width: 500px; margin-bottom: 20px; }
+
+        body { 
+            font-family: -apple-system, 'Pretendard', sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 배경 로고 설정 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 400px;
+            height: 400px;
+            background-image: url('경일로고.png'); /* 로고 파일명 확인 */
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.08; /* 투명도를 낮게 설정 */
+            z-index: -1;
+        }
+
+        .header { width: 100%; max-width: 500px; text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 26px; color: var(--kyungil-blue); margin: 10px 0; font-weight: 800; }
+        .header p { color: var(--kyungil-green); font-weight: 600; margin: 0; font-size: 14px; }
+
+        .admin-bar { width: 100%; max-width: 500px; display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 15px; }
+        .admin-btn { background: rgba(255,255,255,0.7); border: 1px solid #ddd; border-radius: 10px; padding: 6px 12px; font-size: 11px; cursor: pointer; color: var(--text-gray); transition: 0.2s; }
+        .admin-btn:hover { background: #fff; border-color: var(--kyungil-blue); }
+
         .suggestion-btn {
-            display: block; background: var(--accent-green); color: #fff;
-            text-align: center; padding: 18px; border-radius: 16px;
-            text-decoration: none; font-weight: 700; box-shadow: 0 4px 10px rgba(52, 168, 83, 0.2);
+            display: block; width: 100%; max-width: 500px; 
+            background: linear-gradient(135deg, var(--kyungil-green), #43a047); 
+            color: #fff; text-align: center; padding: 20px; border-radius: 20px;
+            text-decoration: none; font-weight: 700; font-size: 16px;
+            box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);
+            margin-bottom: 30px; box-sizing: border-box;
         }
-        .section-title { width: 100%; max-width: 500px; font-size: 18px; font-weight: 700; margin: 20px 0 15px; display: flex; align-items: center; }
-        .section-title::before { content: ""; width: 4px; height: 18px; background: var(--accent-blue); margin-right: 10px; border-radius: 2px; }
-        .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 100px; }
-        .card { background: var(--card-color); border-radius: 20px; padding: 22px; box-shadow: var(--shadow); position: relative; cursor: pointer; }
-        .d-day { position: absolute; top: 22px; right: 22px; padding: 5px 12px; border-radius: 10px; font-size: 13px; font-weight: 800; }
-        .urgent { background-color: #fee; color: #d93025; }
-        .upcoming { background-color: #e8f0fe; color: #1a73e8; }
-        .subject-text { font-size: 19px; font-weight: 700; margin-top: 5px; }
-        .date-text { font-size: 13px; color: var(--text-gray); margin-top: 4px; }
+
+        .section-title { width: 100%; max-width: 500px; font-size: 19px; font-weight: 800; margin: 20px 0 15px; color: var(--kyungil-blue); display: flex; align-items: center; }
+        .section-title::before { content: ""; width: 6px; height: 20px; background: var(--kyungil-blue); margin-right: 12px; border-radius: 3px; }
+
+        .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 18px; padding-bottom: 120px; }
+
+        /* 카드 디자인 고도화 */
+        .card { 
+            background: var(--card-color); border-radius: 24px; padding: 24px; 
+            box-shadow: var(--shadow); position: relative; cursor: pointer; 
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); border-color: var(--kyungil-blue); }
+
+        .d-day { 
+            position: absolute; top: 24px; right: 24px; 
+            padding: 6px 14px; border-radius: 12px; font-size: 12px; font-weight: 800; 
+        }
+        .urgent { background: #ffebee; color: #d32f2f; }
+        .upcoming { background: #e8eaf6; color: var(--kyungil-blue); }
+        
+        .subject-text { font-size: 20px; font-weight: 800; color: var(--text-dark); margin-top: 8px; }
+        .date-text { font-size: 13px; color: var(--text-gray); font-weight: 500; }
+
+        /* 아래에서 올라오는 바텀 시트 (상세보기) */
+        .bottom-sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); display: none; z-index: 2000;
+            align-items: flex-end; justify-content: center;
+        }
+        .bottom-sheet {
+            background: #fff; width: 100%; max-width: 500px;
+            border-radius: 30px 30px 0 0; padding: 35px 25px 50px;
+            box-sizing: border-box; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+        }
+        .bottom-sheet.show { transform: translateY(0); }
+        .sheet-handle { width: 40px; height: 5px; background: #ddd; border-radius: 3px; margin: 0 auto 25px; }
+        .sheet-title { font-size: 22px; font-weight: 800; color: var(--kyungil-blue); margin-bottom: 10px; }
+        .sheet-date { font-size: 14px; color: var(--kyungil-green); font-weight: 600; margin-bottom: 20px; }
+        .sheet-content { font-size: 16px; line-height: 1.6; color: #444; white-space: pre-wrap; background: #f0f2f5; padding: 20px; border-radius: 15px; }
+        .sheet-close { margin-top: 25px; width: 100%; padding: 18px; border-radius: 15px; border: none; background: var(--kyungil-blue); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; }
+
+        /* 기존 등록 모달은 그대로 유지하되 디자인 통일 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: #fff; width: 90%; max-width: 450px; border-radius: 25px; padding: 25px; box-sizing: border-box; }
-        .modal-input { width: 100%; padding: 12px; margin: 8px 0 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .btn-group { display: flex; gap: 10px; }
-        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
-        .btn-save { background: var(--accent-blue); color: #fff; }
-        .status-badge { font-size: 10px; color: #9aa0a6; margin-top: 20px; }
-        .online { color: var(--accent-green); font-weight: bold; }
+        .modal-content { background: #fff; width: 90%; max-width: 450px; border-radius: 25px; padding: 30px; box-sizing: border-box; }
+        .modal-input { width: 100%; padding: 14px; margin: 10px 0; border: 1.5px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 15px; outline: none; transition: 0.2s; }
+        .modal-input:focus { border-color: var(--kyungil-blue); background: #fcfdfe; }
+
+        .btn-save { background: var(--kyungil-blue); color: #fff; border: none; font-weight: 700; cursor: pointer; }
+        .status-badge { font-size: 11px; margin-top: 20px; color: #9aa0a6; }
+        .online { color: var(--kyungil-green); font-weight: bold; }
+
         #admin-controls { position: fixed; bottom: 30px; width: 90%; max-width: 460px; z-index: 99; }
     </style>
 </head>
 <body>
     <div class="header">
+        <p>KYUNGIL HIGH SCHOOL</p>
         <h1>2학년 5반 스마트 시스템</h1>
-        <p style="color: var(--text-gray); margin: 0;">실시간 학급 대시보드</p>
     </div>
 
     <div class="admin-bar">
@@ -59,38 +133,46 @@
         <button class="admin-btn" id="adminBtn" onclick="toggleAdminMode()">관리자 로그인</button>
     </div>
 
-    <div class="suggestion-area">
-        <a href="https://forms.google.com" target="_blank" class="suggestion-btn">🗳️ 익명 학급 건의함 / 자리 바꾸기</a>
-    </div>
+    <a href="https://forms.google.com" target="_blank" class="suggestion-btn">🗳️ 익명 학급 건의함 / 자리 바꾸기</a>
 
     <div class="section-title">수행평가 일정</div>
     <div class="container" id="schedule-list">
-        <div style="text-align:center; color:#888; padding:40px;">데이터를 불러오는 중...</div>
+        <div style="text-align:center; color:#888; padding:40px;">일정을 불러오고 있습니다...</div>
     </div>
 
     <div id="status-display" class="status-badge">서버 연결 중...</div>
 
+    <!-- 하단 고정 추가 버튼 (관리자용) -->
     <div id="admin-controls" style="display:none;">
-        <button class="btn btn-save" onclick="openEditModal(null)">+ 새 일정 등록</button>
+        <button class="sheet-close" style="box-shadow: 0 10px 25px rgba(26, 35, 126, 0.3);" onclick="openEditModal()">+ 새 일정 등록</button>
     </div>
 
+    <!-- 바텀 시트 (상세 정보용) -->
+    <div class="bottom-sheet-overlay" id="sheetOverlay" onclick="closeBottomSheet()">
+        <div class="bottom-sheet" id="detailSheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div id="sheetTitle" class="sheet-title">과목명</div>
+            <div id="sheetDate" class="sheet-date">날짜</div>
+            <div id="sheetContent" class="sheet-content">상세 내용이 표시됩니다.</div>
+            <button class="sheet-close" onclick="closeBottomSheet()">확인 완료</button>
+        </div>
+    </div>
+
+    <!-- 등록 모달 (기존) -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-content">
-            <h2>일정 관리</h2>
-            <input type="text" id="inputSubject" class="modal-input" placeholder="과목명">
+            <h2 style="color:var(--kyungil-blue); margin-top:0;">일정 등록</h2>
+            <input type="text" id="inputSubject" class="modal-input" placeholder="과목명 (예: 국어 수행)">
             <input type="date" id="inputDate" class="modal-input">
-            <textarea id="inputDetail" class="modal-input" style="height:100px" placeholder="상세 내용"></textarea>
-            <div class="btn-group">
-                <button class="btn" onclick="closeModal()">취소</button>
-                <button class="btn btn-save" onclick="saveItem()">저장</button>
-            </div>
+            <textarea id="inputDetail" class="modal-input" style="height:120px" placeholder="반영 비율, 준비물 등 상세 내용을 입력하세요."></textarea>
+            <button class="sheet-close" onclick="saveItem()">서버에 저장하기</button>
+            <button class="admin-btn" onclick="closeModal()" style="width:100%; margin-top:10px; padding:15px; font-weight:700;">취소</button>
         </div>
     </div>
 
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBnDwYvG-03LNl3NZ3LkOJZnmFGQ8Zcv-k",
-            // ★ 부반장님의 실제 싱가포르 서버 주소로 수정 완료 ★
             databaseURL: "https://manager-47dc3-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "manager-47dc3",
             appId: "1:1035340296214:web:cf1910943c2e04d25bc537"
@@ -104,16 +186,14 @@
         let schedules = [];
 
         function init() {
-            // 연결 상태 모니터링 추가
             database.ref(".info/connected").on("value", (snap) => {
                 if (snap.val() === true) {
-                    document.getElementById('status-display').innerHTML = "<span class='online'>● 서버 실시간 동기화 중 (연결됨)</span>";
+                    document.getElementById('status-display').innerHTML = "<span class='online'>● 경일고 서버 실시간 연결됨</span>";
                 } else {
-                    document.getElementById('status-display').innerHTML = "<span style='color:red'>● 서버 연결 시도 중...</span>";
+                    document.getElementById('status-display').innerHTML = "<span style='color:red'>● 연결 시도 중...</span>";
                 }
             });
 
-            // 데이터 리스너
             scheduleRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 schedules = [];
@@ -142,17 +222,43 @@
                 const diff = Math.ceil((d - now) / (1000*60*60*24));
                 const ddayText = diff === 0 ? "D-Day" : (diff < 0 ? "종료" : "D-"+diff);
                 const ddayClass = diff <= 3 ? "urgent" : "upcoming";
-                card.innerHTML = `<span class="d-day ${ddayClass}">${ddayText}</span><div class="date-text">${item.date}</div><div class="subject-text">${item.subject}</div>`;
-                card.onclick = () => alert(`[${item.subject}]\n상세: ${item.detail || '내용 없음'}`);
+                
+                card.innerHTML = `
+                    <span class="d-day ${ddayClass}">${ddayText}</span>
+                    <div class="date-text">${item.date}</div>
+                    <div class="subject-text">${item.subject}</div>
+                `;
+                card.onclick = () => openBottomSheet(item);
                 list.appendChild(card);
             });
         }
 
+        // 바텀 시트 열기
+        function openBottomSheet(item) {
+            document.getElementById('sheetTitle').innerText = item.subject;
+            document.getElementById('sheetDate').innerText = "시험 일자: " + item.date;
+            document.getElementById('sheetContent').innerText = item.detail || "상세 정보가 등록되지 않았습니다.";
+            
+            document.getElementById('sheetOverlay').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('detailSheet').classList.add('show');
+            }, 10);
+        }
+
+        // 바텀 시트 닫기
+        function closeBottomSheet() {
+            document.getElementById('detailSheet').classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('sheetOverlay').style.display = 'none';
+            }, 400);
+        }
+
         function toggleAdminMode() {
-            if(prompt("관리자 비밀번호?") === "2026205suheang") {
+            if(prompt("관리자 비밀번호를 입력하세요.") === "2026205suheang") {
                 isAdmin = true;
                 document.getElementById('admin-controls').style.display = 'block';
-                alert("관리자 모드 활성화!");
+                document.getElementById('adminBtn').innerText = "관리자 모드 (ON)";
+                alert("관리자 권한이 확인되었습니다.");
             }
         }
 
@@ -163,17 +269,14 @@
             const subject = document.getElementById('inputSubject').value;
             const date = document.getElementById('inputDate').value;
             const detail = document.getElementById('inputDetail').value;
-            if(!subject || !date) return alert("입력 확인!");
+            if(!subject || !date) return alert("과목명과 날짜는 필수입니다!");
             
             scheduleRef.push({ subject, date, detail }).then(() => {
                 closeModal();
-                alert("서버 저장 완료!");
-                // 입력 필드 초기화
+                alert("성공적으로 등록되었습니다!");
                 document.getElementById('inputSubject').value = '';
                 document.getElementById('inputDate').value = '';
                 document.getElementById('inputDetail').value = '';
-            }).catch(err => {
-                alert("저장 실패: " + err.message);
             });
         }
 
