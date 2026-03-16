@@ -4,20 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>경일고 2학년 5반 스마트 시스템</title>
-    <link rel="apple-touch-icon" href="경일로고.png">
+
+    <!-- 안드로이드 & 삼성 인터넷 아이콘 (V자 대신 로고가 뜨게 함) -->
+    <link rel="icon" type="image/png" href="경일로고.png">
     <link rel="shortcut icon" href="경일로고.png">
+    
+    <!-- 아이폰용 아이콘 설정 -->
+    <link rel="apple-touch-icon" href="경일로고.png">
+    
+    <!-- 모바일 전체화면 설정 (홈 화면 추가 시 앱처럼 실행) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    ...
-    <!-- Firebase SDK (Compat) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
     <style>
         :root {
             --kyungil-blue: #1a237e;
             --kyungil-green: #2e7d32;
             --bg-color: #f0f2f5;
-            --card-color: rgba(255, 255, 255, 0.85);
+            --card-color: rgba(255, 255, 255, 0.9);
             --text-dark: #1c1c1c;
             --text-gray: #555;
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -35,7 +44,7 @@
             overflow-x: hidden;
         }
 
-        /* 배경 로고 설정 */
+        /* 배경 로고 */
         body::before {
             content: "";
             position: fixed;
@@ -60,8 +69,7 @@
 
         .admin-bar { width: 100%; max-width: 500px; display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 15px; }
         .admin-btn { background: rgba(255,255,255,0.6); border: 1px solid #ccc; border-radius: 10px; padding: 6px 14px; font-size: 11px; cursor: pointer; color: var(--text-gray); transition: 0.3s; }
-        .admin-btn:hover { background: #fff; border-color: var(--kyungil-blue); }
-
+        
         .suggestion-btn {
             display: block; width: 100%; max-width: 500px; 
             background: linear-gradient(135deg, var(--kyungil-green), #43a047); 
@@ -69,9 +77,7 @@
             border: none; font-weight: 700; font-size: 17px;
             box-shadow: 0 12px 25px rgba(46, 125, 50, 0.3);
             margin-bottom: 30px; box-sizing: border-box; cursor: pointer;
-            transition: transform 0.2s;
         }
-        .suggestion-btn:active { transform: scale(0.97); }
 
         .section-title { width: 100%; max-width: 500px; font-size: 20px; font-weight: 800; margin: 25px 0 18px; color: var(--kyungil-blue); display: flex; align-items: center; }
         .section-title::before { content: ""; width: 6px; height: 22px; background: var(--kyungil-blue); margin-right: 12px; border-radius: 3px; }
@@ -83,16 +89,13 @@
             box-shadow: var(--shadow); position: relative; cursor: pointer; 
             border: 1px solid rgba(255,255,255,0.6);
             backdrop-filter: blur(12px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .card:hover { transform: translateY(-5px); border-color: var(--kyungil-blue); box-shadow: 0 15px 40px rgba(0,0,0,0.12); }
 
         .delete-btn {
             position: absolute; top: 22px; left: 24px; 
             background: #ff5252; color: white; border: none;
             width: 24px; height: 24px; border-radius: 50%;
-            font-size: 12px; font-weight: bold; display: none; 
-            align-items: center; justify-content: center; cursor: pointer; z-index: 10;
+            display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 10;
         }
 
         .d-day { 
@@ -103,9 +106,9 @@
         .upcoming { background: #e8eaf6; color: var(--kyungil-blue); border: 1px solid #c5cae9; }
         
         .subject-text { font-size: 22px; font-weight: 800; color: var(--text-dark); margin-top: 10px; }
-        .date-text { font-size: 14px; color: var(--text-gray); font-weight: 500; }
+        .date-text { font-size: 14px; color: var(--text-gray); }
 
-        /* 바텀 시트 및 모달 */
+        /* 모달 및 시트 스타일 */
         .bottom-sheet-overlay, .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); display: none; z-index: 2000;
@@ -117,24 +120,15 @@
             background: #fff; width: 100%; max-width: 500px;
             border-radius: 32px 32px 0 0; padding: 35px 25px 60px;
             box-sizing: border-box; transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1);
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transition: transform 0.4s ease-out;
         }
         .bottom-sheet.show { transform: translateY(0); }
-        .sheet-handle { width: 50px; height: 6px; background: #eee; border-radius: 3px; margin: 0 auto 30px; }
-        .sheet-title { font-size: 26px; font-weight: 900; color: var(--kyungil-blue); margin-bottom: 8px; }
-        .sheet-content { font-size: 16px; line-height: 1.7; color: #333; white-space: pre-wrap; background: #f8f9fa; padding: 22px; border-radius: 20px; border: 1px solid #f0f0f0; }
-        .sheet-close { margin-top: 30px; width: 100%; padding: 20px; border-radius: 18px; border: none; background: var(--kyungil-blue); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer; }
 
         .modal-content { background: #fff; width: 90%; max-width: 450px; border-radius: 30px; padding: 35px; box-sizing: border-box; }
-        .modal-input { width: 100%; padding: 15px; margin: 12px 0; border: 2px solid #f0f0f0; border-radius: 14px; box-sizing: border-box; font-size: 16px; outline: none; }
-        .modal-input:focus { border-color: var(--kyungil-blue); background: #fcfdfe; }
-
-        .status-badge { font-size: 11px; margin: 25px 0; color: #9aa0a6; text-align: center; font-weight: 500; }
-        .online { color: var(--kyungil-green); font-weight: 700; }
+        .modal-input { width: 100%; padding: 15px; margin: 12px 0; border: 2px solid #f0f0f0; border-radius: 14px; font-size: 16px; outline: none; }
 
         #admin-controls { position: fixed; bottom: 35px; width: 90%; max-width: 460px; z-index: 100; display: flex; gap: 10px; }
-        .admin-action-btn { flex: 1; padding: 20px; border-radius: 18px; border: none; background: var(--kyungil-blue); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .admin-action-btn { flex: 1; padding: 20px; border-radius: 18px; border: none; background: var(--kyungil-blue); color: #fff; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -148,64 +142,56 @@
         <button class="admin-btn" id="adminBtn" onclick="toggleAdminMode()">관리자 로그인</button>
     </div>
 
-    <!-- 건의함 버튼 (이제 팝업이 뜹니다) -->
-    <button class="suggestion-btn" onclick="openSuggestionModal()">🗳️ 익명 학급 건의함 / 자리 바꾸기</button>
+    <button class="suggestion-btn" onclick="openModal('suggestModal')">🗳️ 익명 학급 건의함 / 자리 바꾸기</button>
 
     <div class="section-title">수행평가 일정</div>
     <div class="container" id="schedule-list">
         <div style="text-align:center; color:#888; padding:50px;">데이터를 불러오는 중입니다...</div>
     </div>
 
-    <div id="status-display" class="status-badge">연결 상태 확인 중...</div>
-
-    <!-- 관리자 하단 버튼들 -->
     <div id="admin-controls" style="display:none;">
-        <button class="admin-action-btn" onclick="openEditModal()">📝 일정 등록</button>
+        <button class="admin-action-btn" onclick="openModal('editModal')">📝 일정 등록</button>
         <button class="admin-action-btn" style="background:var(--kyungil-green)" onclick="openAdminSuggestModal()">📥 건의함 확인</button>
     </div>
 
     <!-- 상세 보기 바텀 시트 -->
     <div class="bottom-sheet-overlay" id="sheetOverlay" onclick="closeBottomSheet()">
         <div class="bottom-sheet" id="detailSheet" onclick="event.stopPropagation()">
-            <div class="sheet-handle"></div>
-            <div id="sheetTitle" class="sheet-title">과목명</div>
-            <div id="sheetDate" class="sheet-date" style="color:var(--kyungil-green); font-weight:700; margin-bottom:20px;">날짜</div>
-            <div id="sheetContent" class="sheet-content">상세 내용</div>
-            <button class="sheet-close" onclick="closeBottomSheet()">확인했습니다</button>
+            <div id="sheetTitle" style="font-size:26px; font-weight:900; color:var(--kyungil-blue); margin-bottom:10px;">과목명</div>
+            <div id="sheetDate" style="color:var(--kyungil-green); font-weight:700; margin-bottom:20px;">날짜</div>
+            <div id="sheetContent" style="background:#f8f9fa; padding:20px; border-radius:20px; white-space:pre-wrap;">상세 내용</div>
+            <button class="admin-action-btn" style="width:100%; margin-top:30px;" onclick="closeBottomSheet()">확인했습니다</button>
         </div>
     </div>
 
-    <!-- 학생용 건의 등록 모달 -->
+    <!-- 건의 등록 모달 -->
     <div class="modal-overlay" id="suggestModal">
         <div class="modal-content">
-            <h2 style="color:var(--kyungil-green); margin:0 0 10px;">익명 건의함</h2>
-            <p style="font-size:14px; color:#666; margin-bottom:20px;">우리 반을 위한 의견을 자유롭게 남겨주세요.</p>
-            <textarea id="suggestInput" class="modal-input" style="height:150px" placeholder="내용을 입력하세요..."></textarea>
-            <button class="sheet-close" style="background:var(--kyungil-green); margin-top:10px;" onclick="submitSuggestion()">건의사항 보내기</button>
-            <button class="admin-btn" onclick="closeModal('suggestModal')" style="width:100%; margin-top:10px; padding:15px;">닫기</button>
+            <h2 style="color:var(--kyungil-green);">익명 건의함</h2>
+            <textarea id="suggestInput" class="modal-input" style="height:150px" placeholder="반을 위한 의견을 남겨주세요."></textarea>
+            <button class="admin-action-btn" style="width:100%; background:var(--kyungil-green);" onclick="submitSuggestion()">보내기</button>
+            <button class="admin-btn" style="width:100%; margin-top:10px; padding:15px;" onclick="closeModal('suggestModal')">닫기</button>
         </div>
     </div>
 
-    <!-- 관리자용 일정 등록 모달 -->
+    <!-- 일정 등록 모달 -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-content">
-            <h2 style="color:var(--kyungil-blue); margin:0 0 20px;">수행평가 등록</h2>
+            <h2>수행평가 등록</h2>
             <input type="text" id="inputSubject" class="modal-input" placeholder="과목명">
             <input type="date" id="inputDate" class="modal-input">
-            <textarea id="inputDetail" class="modal-input" style="height:140px" placeholder="상세 정보(준비물 등)"></textarea>
-            <button class="sheet-close" onclick="saveItem()">DB 서버에 저장</button>
-            <button class="admin-btn" onclick="closeModal('editModal')" style="width:100%; margin-top:12px; padding:15px;">닫기</button>
+            <textarea id="inputDetail" class="modal-input" style="height:140px" placeholder="상세 정보"></textarea>
+            <button class="admin-action-btn" style="width:100%;" onclick="saveItem()">DB 저장</button>
+            <button class="admin-btn" style="width:100%; margin-top:10px; padding:15px;" onclick="closeModal('editModal')">닫기</button>
         </div>
     </div>
 
-    <!-- 관리자용 건의 목록 모달 -->
+    <!-- 관리자 건의 확인 모달 -->
     <div class="modal-overlay" id="adminSuggestModal">
         <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
-            <h2 style="color:var(--kyungil-green); margin:0 0 20px;">접수된 건의사항</h2>
-            <div id="suggest-list" style="display:flex; flex-direction:column; gap:10px;">
-                <!-- 건의 내용이 여기에 들어감 -->
-            </div>
-            <button class="admin-btn" onclick="closeModal('adminSuggestModal')" style="width:100%; margin-top:20px; padding:15px; font-weight:bold;">목록 닫기</button>
+            <h2>건의사항 목록</h2>
+            <div id="suggest-list"></div>
+            <button class="admin-btn" style="width:100%; margin-top:20px; padding:15px;" onclick="closeModal('adminSuggestModal')">닫기</button>
         </div>
     </div>
 
@@ -226,11 +212,6 @@
         let schedules = [];
 
         function init() {
-            database.ref(".info/connected").on("value", (snap) => {
-                const status = document.getElementById('status-display');
-                status.innerHTML = snap.val() === true ? "<span class='online'>● 경일고 실시간 서버 연결됨</span>" : "<span style='color:#d32f2f'>● 서버 연결 중...</span>";
-            });
-
             scheduleRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 schedules = [];
@@ -247,46 +228,37 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 const d = new Date(item.date);
-                const now = new Date(); now.setHours(0,0,0,0);
-                const diff = Math.ceil((d - now) / (1000*60*60*24));
+                const diff = Math.ceil((d - new Date().setHours(0,0,0,0)) / (1000*60*60*24));
                 const ddayText = diff === 0 ? "D-Day" : (diff < 0 ? "종료" : "D-"+diff);
-                const ddayClass = diff <= 3 ? "urgent" : "upcoming";
                 const deleteBtn = isAdmin ? `<button class="delete-btn" style="display:flex" onclick="deleteItem(event, '${item.id}')">✕</button>` : '';
-                card.innerHTML = `${deleteBtn}<span class="d-day ${ddayClass}">${ddayText}</span><div class="date-text">${item.date}</div><div class="subject-text">${item.subject}</div>`;
+                card.innerHTML = `${deleteBtn}<span class="d-day ${diff <= 3 ? 'urgent' : 'upcoming'}">${ddayText}</span><div class="date-text">${item.date}</div><div class="subject-text">${item.subject}</div>`;
                 card.onclick = () => openBottomSheet(item);
                 list.appendChild(card);
             });
         }
 
-        // 학생: 건의사항 제출
         function submitSuggestion() {
             const content = document.getElementById('suggestInput').value;
-            if(!content) return alert("내용을 입력해주세요!");
-            const time = new Date().toLocaleString();
-            suggestRef.push({ content, time }).then(() => {
-                alert("익명으로 건의사항이 전달되었습니다!");
+            if(!content) return;
+            suggestRef.push({ content, time: new Date().toLocaleString() }).then(() => {
+                alert("제출되었습니다.");
                 document.getElementById('suggestInput').value = '';
                 closeModal('suggestModal');
             });
         }
 
-        // 관리자: 건의 목록 보기
         function openAdminSuggestModal() {
             const list = document.getElementById('suggest-list');
-            list.innerHTML = "불러오는 중...";
+            list.innerHTML = "로딩 중...";
             suggestRef.once('value', (snapshot) => {
                 list.innerHTML = "";
                 const data = snapshot.val();
-                if(!data) {
-                    list.innerHTML = "<p style='text-align:center; color:#999;'>접수된 내용이 없습니다.</p>";
-                } else {
+                if(data) {
                     Object.keys(data).reverse().forEach(key => {
-                        const item = data[key];
                         const div = document.createElement('div');
-                        div.style = "padding:15px; background:#f0f7f0; border-radius:12px; font-size:14px; position:relative;";
-                        div.innerHTML = `<div style="color:#888; font-size:11px; margin-bottom:5px;">${item.time}</div>
-                                         <div style="color:#333; line-height:1.5;">${item.content}</div>
-                                         <button onclick="deleteSuggest('${key}')" style="position:absolute; top:10px; right:10px; border:none; background:none; color:#ccc; cursor:pointer;">✕</button>`;
+                        div.style = "padding:15px; background:#f0f7f0; border-radius:12px; margin-bottom:10px; position:relative;";
+                        div.innerHTML = `<small>${data[key].time}</small><br>${data[key].content}
+                                         <button onclick="deleteSuggest('${key}')" style="position:absolute; top:10px; right:10px; border:none; background:none; cursor:pointer;">✕</button>`;
                         list.appendChild(div);
                     });
                 }
@@ -295,44 +267,44 @@
         }
 
         function deleteSuggest(id) {
-            if(confirm("이 건의사항을 목록에서 지울까요?")) {
-                database.ref('suggestions/' + id).remove().then(() => openAdminSuggestModal());
-            }
+            if(confirm("삭제하시겠습니까?")) database.ref('suggestions/' + id).remove().then(() => openAdminSuggestModal());
         }
 
         function toggleAdminMode() {
-            if(prompt("관리자 비밀번호?") === "2026205suheang") {
+            if(prompt("비밀번호?") === "2026205suheang") {
                 isAdmin = true;
                 document.getElementById('admin-controls').style.display = 'flex';
                 document.getElementById('adminBtn').innerText = "관리자 (ON)";
                 renderList();
-                alert("관리자 모드: 일정 관리 및 건의함 확인이 가능합니다.");
             }
         }
 
-        function openSuggestionModal() { document.getElementById('suggestModal').style.display = 'flex'; }
-        function openEditModal() { document.getElementById('editModal').style.display = 'flex'; }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
         function openBottomSheet(item) {
             document.getElementById('sheetTitle').innerText = item.subject;
-            document.getElementById('sheetDate').innerText = "마감기한: " + item.date;
-            document.getElementById('sheetContent').innerText = item.detail || "등록된 상세 내용이 없습니다.";
+            document.getElementById('sheetDate').innerText = "마감: " + item.date;
+            document.getElementById('sheetContent').innerText = item.detail || "상세 내용 없음";
             document.getElementById('sheetOverlay').style.display = 'flex';
             setTimeout(() => document.getElementById('detailSheet').classList.add('show'), 10);
         }
+
         function closeBottomSheet() {
             document.getElementById('detailSheet').classList.remove('show');
             setTimeout(() => document.getElementById('sheetOverlay').style.display = 'none', 400);
         }
+
         function deleteItem(event, id) {
             event.stopPropagation();
-            if(confirm("이 일정을 삭제할까요?")) database.ref('schedules/' + id).remove();
+            if(confirm("삭제할까요?")) database.ref('schedules/' + id).remove();
         }
+
         function saveItem() {
             const subject = document.getElementById('inputSubject').value;
             const date = document.getElementById('inputDate').value;
             const detail = document.getElementById('inputDetail').value;
-            if(!subject || !date) return alert("필수 항목 입력!");
+            if(!subject || !date) return;
             scheduleRef.push({ subject, date, detail }).then(() => {
                 closeModal('editModal');
                 document.getElementById('inputSubject').value = '';
