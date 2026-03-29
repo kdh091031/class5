@@ -14,10 +14,9 @@
     <link rel="apple-touch-icon" href="경일로고.png">
     <link rel="apple-touch-icon" sizes="180x180" href="경일로고.png">
     
-    <!-- 안드로이드 앱 설치 모드 강제화 (이게 있어야 V가 안 뜹니다) -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="5반 스마트">
-    <meta name="theme-color" content="#1a237e"> <!-- 상단바 색상을 경일고 블루로 설정 -->
+    <meta name="theme-color" content="#1a237e">
 
     <!-- iOS 앱 모드 설정 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -55,19 +54,11 @@
         body::before {
             content: "";
             position: fixed;
-            top: 55%;
-            left: 50%;
+            top: 55%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 380px;
-            height: 380px;
-            background-image: url('경일로고.png'); 
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            opacity: 0.12; 
-            z-index: -1;
-            pointer-events: none;
+            width: 90%; max-width: 380px; height: 380px;
+            background: url('경일로고.png') no-repeat center/contain;
+            opacity: 0.12; z-index: -1; pointer-events: none;
         }
 
         .header { width: 100%; max-width: 500px; text-align: center; margin-bottom: 35px; }
@@ -102,12 +93,17 @@
         }
         .card:active { transform: scale(0.98); }
 
-        .delete-btn {
+        /* 관리자용 버튼 레이아웃 수정 */
+        .admin-actions {
             position: absolute; top: 22px; left: 24px; 
-            background: #ff5252; color: white; border: none;
-            width: 24px; height: 24px; border-radius: 50%;
-            display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 10;
+            display: none; gap: 8px; z-index: 10;
         }
+        .circle-btn {
+            width: 28px; height: 28px; border-radius: 50%; border: none;
+            color: white; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .del-btn { background: #ff5252; }
+        .edit-btn { background: #ffa000; }
 
         .d-day { 
             position: absolute; top: 26px; right: 26px; 
@@ -135,7 +131,7 @@
         .bottom-sheet.show { transform: translateY(0); }
 
         .modal-content { background: #fff; width: 90%; max-width: 450px; border-radius: 30px; padding: 35px; box-sizing: border-box; }
-        .modal-input { width: 100%; padding: 15px; margin: 12px 0; border: 2px solid #f0f0f0; border-radius: 14px; font-size: 16px; outline: none; }
+        .modal-input { width: 100%; padding: 15px; margin: 12px 0; border: 2px solid #f0f0f0; border-radius: 14px; font-size: 16px; outline: none; box-sizing: border-box; }
 
         #admin-controls { position: fixed; bottom: 35px; width: 90%; max-width: 460px; z-index: 100; display: flex; gap: 10px; }
         .admin-action-btn { flex: 1; padding: 20px; border-radius: 18px; border: none; background: var(--kyungil-blue); color: #fff; font-weight: 700; cursor: pointer; }
@@ -160,11 +156,11 @@
     </div>
 
     <div id="admin-controls" style="display:none;">
-        <button class="admin-action-btn" onclick="openModal('editModal')">📝 일정 등록</button>
+        <button class="admin-action-btn" onclick="openEditModal(null)">📝 일정 등록</button>
         <button class="admin-action-btn" style="background:var(--kyungil-green)" onclick="openAdminSuggestModal()">📥 건의함 확인</button>
     </div>
 
-    <!-- 바텀 시트/모달 구조는 기존과 동일 -->
+    <!-- 상세 보기 바텀 시트 -->
     <div class="bottom-sheet-overlay" id="sheetOverlay" onclick="closeBottomSheet()">
         <div class="bottom-sheet" id="detailSheet" onclick="event.stopPropagation()">
             <div id="sheetTitle" style="font-size:26px; font-weight:900; color:var(--kyungil-blue); margin-bottom:10px;">과목명</div>
@@ -174,29 +170,33 @@
         </div>
     </div>
 
+    <!-- 건의함 모달 -->
     <div class="modal-overlay" id="suggestModal">
         <div class="modal-content">
-            <h2 style="color:var(--kyungil-green);">익명 건의함</h2>
+            <h2 style="color:var(--kyungil-green); margin-top:0;">익명 건의함</h2>
             <textarea id="suggestInput" class="modal-input" style="height:150px" placeholder="반을 위한 의견을 남겨주세요."></textarea>
             <button class="admin-action-btn" style="width:100%; background:var(--kyungil-green);" onclick="submitSuggestion()">보내기</button>
             <button class="admin-btn" style="width:100%; margin-top:10px; padding:15px;" onclick="closeModal('suggestModal')">닫기</button>
         </div>
     </div>
 
+    <!-- 등록 및 수정 모달 -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-content">
-            <h2>수행평가 등록</h2>
+            <h2 id="modalTitle" style="margin-top:0;">수행평가 등록</h2>
+            <input type="hidden" id="editItemId"> <!-- 수정 시 ID 보관용 -->
             <input type="text" id="inputSubject" class="modal-input" placeholder="과목명">
             <input type="date" id="inputDate" class="modal-input">
             <textarea id="inputDetail" class="modal-input" style="height:140px" placeholder="상세 정보"></textarea>
-            <button class="admin-action-btn" style="width:100%;" onclick="saveItem()">DB 저장</button>
+            <button id="saveBtn" class="admin-action-btn" style="width:100%;" onclick="saveItem()">서버에 저장</button>
             <button class="admin-btn" style="width:100%; margin-top:10px; padding:15px;" onclick="closeModal('editModal')">닫기</button>
         </div>
     </div>
 
+    <!-- 건의 확인 모달 -->
     <div class="modal-overlay" id="adminSuggestModal">
         <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
-            <h2>건의사항 목록</h2>
+            <h2 style="margin-top:0;">건의사항 목록</h2>
             <div id="suggest-list"></div>
             <button class="admin-btn" style="width:100%; margin-top:20px; padding:15px;" onclick="closeModal('adminSuggestModal')">닫기</button>
         </div>
@@ -230,20 +230,109 @@
         function renderList() {
             const list = document.getElementById('schedule-list');
             list.innerHTML = '';
+            
+            // 날짜 순 정렬
             schedules.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
             schedules.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                const d = new Date(item.date);
-                const diff = Math.ceil((d - new Date().setHours(0,0,0,0)) / (1000*60*60*24));
-                const ddayText = diff === 0 ? "D-Day" : (diff < 0 ? "종료" : "D-"+diff);
-                const deleteBtn = isAdmin ? `<button class="delete-btn" style="display:flex" onclick="deleteItem(event, '${item.id}')">✕</button>` : '';
-                card.innerHTML = `${deleteBtn}<span class="d-day ${diff <= 3 ? 'urgent' : 'upcoming'}">${ddayText}</span><div class="date-text">${item.date}</div><div class="subject-text">${item.subject}</div>`;
+        
+                // --- D-Day 계산 로직 수정 (자정 기준) ---
+                const targetDate = new Date(item.date);
+                targetDate.setHours(0, 0, 0, 0); 
+        
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); 
+        
+                const diffTime = targetDate - today;
+                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        
+                let ddayText, ddayClass;
+                if (diffDays === 0) {
+                    ddayText = "D-Day";
+                    ddayClass = "urgent";
+                } else if (diffDays < 0) {
+                    ddayText = "종료";
+                    ddayClass = "upcoming";
+                } else {
+                    ddayText = "D-" + diffDays;
+                    ddayClass = diffDays <= 3 ? "urgent" : "upcoming";
+                }
+
+                // 관리자 버튼 셋 (삭제 + 수정)
+                const adminButtons = `
+                    <div class="admin-actions" style="display:${isAdmin ? 'flex' : 'none'}">
+                        <button class="circle-btn del-btn" onclick="deleteItem(event, '${item.id}')">✕</button>
+                        <button class="circle-btn edit-btn" onclick="openEditModal(event, '${item.id}')">✎</button>
+                    </div>
+                `;
+
+                card.innerHTML = `
+                    ${adminButtons}
+                    <span class="d-day ${ddayClass}">${ddayText}</span>
+                    <div class="date-text">${item.date}</div>
+                    <div class="subject-text">${item.subject}</div>
+                `;
+                
                 card.onclick = () => openBottomSheet(item);
                 list.appendChild(card);
             });
         }
 
+        // --- 수정/등록 통합 모달 열기 ---
+        function openEditModal(event, id = null) {
+            if(event) event.stopPropagation(); // 카드 클릭 방지
+            
+            const modal = document.getElementById('editModal');
+            const title = document.getElementById('modalTitle');
+            const saveBtn = document.getElementById('saveBtn');
+            const idInput = document.getElementById('editItemId');
+            
+            if(id) {
+                // 수정 모드
+                const item = schedules.find(s => s.id === id);
+                title.innerText = "수행평가 수정";
+                saveBtn.innerText = "수정 내용 저장";
+                idInput.value = id;
+                document.getElementById('inputSubject').value = item.subject;
+                document.getElementById('inputDate').value = item.date;
+                document.getElementById('inputDetail').value = item.detail || "";
+            } else {
+                // 신규 등록 모드
+                title.innerText = "수행평가 등록";
+                saveBtn.innerText = "새 일정 등록";
+                idInput.value = "";
+                document.getElementById('inputSubject').value = "";
+                document.getElementById('inputDate').value = "";
+                document.getElementById('inputDetail').value = "";
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function saveItem() {
+            const id = document.getElementById('editItemId').value;
+            const subject = document.getElementById('inputSubject').value;
+            const date = document.getElementById('inputDate').value;
+            const detail = document.getElementById('inputDetail').value;
+            
+            if(!subject || !date) return alert("필수 항목을 입력해주세요!");
+
+            if(id) {
+                // 기존 데이터 수정 (Update)
+                database.ref('schedules/' + id).update({ subject, date, detail }).then(() => {
+                    closeModal('editModal');
+                });
+            } else {
+                // 새 데이터 추가 (Push)
+                scheduleRef.push({ subject, date, detail }).then(() => {
+                    closeModal('editModal');
+                });
+            }
+        }
+
+        // 건의함 관련 함수들
         function submitSuggestion() {
             const content = document.getElementById('suggestInput').value;
             if(!content) return;
@@ -278,6 +367,13 @@
         }
 
         function toggleAdminMode() {
+            if(isAdmin) {
+                isAdmin = false;
+                document.getElementById('admin-controls').style.display = 'none';
+                document.getElementById('adminBtn').innerText = "관리자 로그인";
+                renderList();
+                return;
+            }
             if(prompt("비밀번호?") === "2026205suheang") {
                 isAdmin = true;
                 document.getElementById('admin-controls').style.display = 'flex';
@@ -304,20 +400,7 @@
 
         function deleteItem(event, id) {
             event.stopPropagation();
-            if(confirm("삭제할까요?")) database.ref('schedules/' + id).remove();
-        }
-
-        function saveItem() {
-            const subject = document.getElementById('inputSubject').value;
-            const date = document.getElementById('inputDate').value;
-            const detail = document.getElementById('inputDetail').value;
-            if(!subject || !date) return;
-            scheduleRef.push({ subject, date, detail }).then(() => {
-                closeModal('editModal');
-                document.getElementById('inputSubject').value = '';
-                document.getElementById('inputDate').value = '';
-                document.getElementById('inputDetail').value = '';
-            });
+            if(confirm("이 일정을 영구 삭제할까요?")) database.ref('schedules/' + id).remove();
         }
 
         init();
